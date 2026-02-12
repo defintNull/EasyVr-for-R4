@@ -588,7 +588,13 @@ void initializeWifi(){
 }
 
 void clientRequest(const char* command) {
-  Serial.println("Richiesta");
+
+  Serial.println(F("Richiesta"));
+
+  if (!client.connect(server, 1234)) {
+    Serial.println(F("Connessione fallita"));
+    return;
+  }
 
   client.print("GET /command?id=");
   client.print(command);
@@ -597,21 +603,17 @@ void clientRequest(const char* command) {
   client.println("Connection: close");
   client.println();
 
-  uint32_t received_data_num = 0;
-  while (client.available()) {
-    /* actual data reception */
-    char c = client.read();
-
-    /* print data to serial port */
-    Serial.print(c);
-
-    /* wrap data to 80 columns*/
-    received_data_num++;
-    if(received_data_num % 80 == 0) { 
-      Serial.println();
+  while (client.connected()) {
+    while (client.available()) {
+      char c = client.read();
+      Serial.print(c);
     }
   }
+
+  client.stop();
+  Serial.println(F("\nConnessione chiusa"));
 }
+
 
 
 void setup() {
